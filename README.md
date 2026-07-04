@@ -1,45 +1,143 @@
-# RTL8852AU Driver - Kernel 6.13-6.17+ Patches
+# RTL8852AU Driver for Linux Kernel 6.13–6.17+
 
-**Tested on TP-Link TX20U Plus (USB ID: `2357:013f`)**
+Compatibility patches for recent Linux kernels.
 
-This fork includes patches for **Linux Kernel 6.13-6.17+** compatibility. The original driver was not updated for these kernel versions, which introduced API changes.
+Tested on **TP-Link TX20U Plus** (`USB ID: 2357:013f`)
+
+---
+
+## Overview
+
+This repository provides compatibility patches for the RTL8852AU driver to support Linux kernels **6.13 through 6.17+**.
+
+The original driver is no longer maintained for newer kernels and fails to compile due to several networking and timer API changes introduced in recent Linux releases.
+
+## Supported Device
+
+| Device             | USB ID    | Status             |
+| ------------------ | --------- | ------------------ |
+| TP-Link TX20U Plus | 2357:013f | Tested and working |
+
+Additional RTL8852AU-based devices may also work but have not been verified.
+
+---
 
 ## Applied Patches
 
-| Kernel Version | Change |
-|----------------|--------|
-| **All** | `EXTRA_CFLAGS` → `ccflags-y` (Kernel 6.15+ ignores EXTRA_CFLAGS) |
-| **6.13+** | `MODULE_IMPORT_NS` disabled, `set_monitor_channel` net_device parameter |
-| **6.14+** | `get_txpower` link_id parameter |
-| **6.15+** | `del_timer` → `timer_delete`, compiler warnings suppressed |
-| **6.16+** | `from_timer` → `timer_container_of` |
-| **6.17+** | `set_wiphy_params/set_txpower/get_txpower` radio_id parameter |
+| Kernel Version | Changes                                                                                          |
+| -------------- | ------------------------------------------------------------------------------------------------ |
+| All            | `EXTRA_CFLAGS` replaced with `ccflags-y`                                                         |
+| 6.13+          | Disabled `MODULE_IMPORT_NS`; updated `set_monitor_channel()`                                     |
+| 6.14+          | Added `link_id` parameter support in `get_txpower()`                                             |
+| 6.15+          | Replaced `del_timer()` with `timer_delete()`                                                     |
+| 6.15+          | Suppressed compiler warnings introduced by newer GCC versions                                    |
+| 6.16+          | Replaced `from_timer()` with `timer_container_of()`                                              |
+| 6.17+          | Added `radio_id` parameter support in `set_wiphy_params()`, `set_txpower()`, and `get_txpower()` |
 
-## Quick Installation
+---
+
+## Requirements
+
+* Linux Kernel 6.13+
+* GCC
+* make
+* Linux kernel headers
+
+Ubuntu / Mint:
 
 ```bash
-# Build
+sudo apt install build-essential linux-headers-$(uname -r)
+```
+
+Debian:
+
+```bash
+sudo apt install build-essential linux-headers-amd64
+```
+
+---
+
+## Build
+
+```bash
 make -j$(nproc)
+```
 
-# Install
+---
+
+## Install
+
+```bash
 sudo make install
+```
 
-# Load module
+Load the driver:
+
+```bash
 sudo modprobe 8852au
 ```
+
+Verify:
+
+```bash
+lsmod | grep 8852au
+```
+
+---
 
 ## Rebuild After Kernel Update
 
 ```bash
 make clean
+
 make -j$(nproc)
+
 sudo make install
-sudo modprobe -r 8852au && sudo modprobe 8852au
+
+sudo modprobe -r 8852au
+
+sudo modprobe 8852au
 ```
+
+---
+
+## DKMS (optional)
+
+For automatic rebuilds after kernel upgrades:
+
+```bash
+sudo dkms add .
+
+sudo dkms build 8852au/1.0
+
+sudo dkms install 8852au/1.0
+```
+
+---
 
 ## Tested System
 
-- **Device:** TP-Link TX20U Plus (USB ID: `2357:013f`)
-- **OS:** Linux Mint 22.3
-- **Kernel:** 6.17.0-35-generic
-- **Status:** Working at 1.2 Gb/s on WiFi 6 (5 GHz)
+| Component        | Value              |
+| ---------------- | ------------------ |
+| Device           | TP-Link TX20U Plus |
+| USB ID           | 2357:013f          |
+| Operating System | Linux Mint 22.3    |
+| Kernel           | 6.17.0-35-generic  |
+| Wi-Fi Standard   | Wi-Fi 6            |
+| Band             | 5 GHz              |
+| Link Speed       | 1.2 Gbit/s         |
+| Status           | Working            |
+
+---
+
+## Notes
+
+This repository only provides compatibility fixes for recent Linux kernels.
+
+No additional functionality has been added compared to the original RTL8852AU driver.
+
+---
+
+## License
+
+Same license as the original RTL8852AU driver source.
